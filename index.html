@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POPMART | 靈魂的容器 - 沉浸式敘事展</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&family=Noto+Serif+TC:wght@600;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #0a0a0a;
+            --accent-gold: #c5a059;
+            --text-light: #e0e0e0;
+            --frame-bg: #ffffff;
+            --letterbox-height: 50px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-light);
+            font-family: 'Noto Sans TC', sans-serif;
+            overflow-x: hidden;
+            line-height: 1.8;
+        }
+
+        /* --- 電影感元素 (Noise & Letterbox) --- */
+        
+        /* 雜訊噪點 */
+        .film-grain {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: url('https://upload.wikimedia.org/wikipedia/commons/7/76/1k_Grain_Noise.png');
+            opacity: 0.04;
+            pointer-events: none;
+            z-index: 9999;
+            animation: grain 0.5s steps(10) infinite;
+        }
+
+        @keyframes grain {
+            0%, 100% { transform: translate(0, 0); }
+            10% { transform: translate(-1%, -1%); }
+            30% { transform: translate(1%, 1%); }
+            50% { transform: translate(-2%, 2%); }
+            70% { transform: translate(2%, -2%); }
+            90% { transform: translate(-1%, 1%); }
+        }
+
+        /* 電影黑邊 */
+        .letterbox {
+            position: fixed;
+            left: 0; width: 100%;
+            height: var(--letterbox-height);
+            background: #000;
+            z-index: 1000;
+        }
+        .letterbox-top { top: 0; border-bottom: 1px solid rgba(197, 160, 89, 0.2); }
+        .letterbox-bottom { bottom: 0; border-top: 1px solid rgba(197, 160, 89, 0.2); }
+
+        /* --- 視覺排版 --- */
+
+        h1, h2, .serif {
+            font-family: 'Noto Serif TC', serif;
+            letter-spacing: 0.1em;
+        }
+
+        /* 第一幕：首頁全幅 */
+        .hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-bg {
+            position: absolute;
+            top: -10%; left: -10%;
+            width: 120%; height: 120%;
+            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), 
+                        url('https://github.com/bhes109106-eng/comics/blob/main/photo1.png?raw=true');
+            background-size: cover;
+            background-position: center;
+            z-index: -1;
+            will-change: transform;
+        }
+
+        .hero-content h1 {
+            font-size: clamp(3rem, 8vw, 6rem);
+            color: var(--accent-gold);
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(0,0,0,0.8);
+        }
+
+        .hero-content p {
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5em;
+            opacity: 0.8;
+        }
+
+        /* 敘事章節 */
+        .chapter {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 100px 10%;
+            position: relative;
+        }
+
+        .chapter:nth-child(even) { flex-direction: row-reverse; }
+
+        .chapter-image-wrapper {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1000px;
+        }
+
+        .polaroid-frame {
+            background: var(--frame-bg);
+            padding: 15px 15px 60px 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            transform: rotate(-3deg);
+            transition: transform 0.6s ease-out;
+            max-width: 85%;
+        }
+
+        .chapter:nth-child(even) .polaroid-frame {
+            transform: rotate(3deg);
+        }
+
+        .polaroid-frame img {
+            width: 100%;
+            display: block;
+            filter: contrast(1.1) brightness(0.9);
+        }
+
+        .chapter-text {
+            flex: 1;
+            padding: 0 5%;
+        }
+
+        .chapter-text h2 {
+            font-size: 2.5rem;
+            color: var(--accent-gold);
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .chapter-text h2::after {
+            content: '';
+            display: block;
+            width: 50px;
+            height: 2px;
+            background: var(--accent-gold);
+            margin-top: 10px;
+        }
+
+        .chapter-text p {
+            font-size: 1.1rem;
+            color: #aaa;
+            text-align: justify;
+        }
+
+        /* --- 滾動揭示動畫 --- */
+        .reveal {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 1s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 延遲效果 */
+        .delay-1 { transition-delay: 0.2s; }
+        .delay-2 { transition-delay: 0.4s; }
+
+        /* --- 頁尾 --- */
+        footer {
+            padding: 100px 0 150px;
+            text-align: center;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .copyright {
+            font-size: 0.9rem;
+            letter-spacing: 0.2em;
+            color: var(--accent-gold);
+        }
+
+        /* --- 響應式設計 --- */
+        @media (max-width: 768px) {
+            .chapter {
+                flex-direction: column !important;
+                padding: 80px 5%;
+            }
+            .polaroid-frame {
+                transform: rotate(0deg) !important;
+                margin-bottom: 40px;
+                max-width: 100%;
+            }
+            .chapter-text {
+                text-align: center;
+            }
+            .chapter-text h2::after {
+                margin: 10px auto;
+            }
+            :root { --letterbox-height: 30px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="film-grain"></div>
+    <div class="letterbox letterbox-top"></div>
+    <div class="letterbox letterbox-bottom"></div>
+
+    <header class="hero">
+        <div class="hero-bg" id="parallax-bg"></div>
+        <div class="hero-content">
+            <h1 class="reveal">POPMART</h1>
+            <p class="reveal delay-1">靈魂的偶然相遇 | 敘事美學展</p>
+        </div>
+    </header>
+
+    <main>
+        <section class="chapter">
+            <div class="chapter-image-wrapper reveal">
+                <div class="polaroid-frame">
+                    <img src="https://github.com/bhes109106-eng/comics/blob/main/photo2.png?raw=true" alt="Pop Mart 02">
+                </div>
+            </div>
+            <div class="chapter-text reveal delay-1">
+                <h2>寂靜的開端</h2>
+                <p>這不只是一個盒子的開啟，而是一段未知旅程的起點。在純黑的底色中，每一尊造型都承載著設計師未曾言說的孤獨。我們在盲盒中尋找的，往往是那個迷失在現實世界裡的、最純粹的自己。</p>
+            </div>
+        </section>
+
+        <section class="chapter">
+            <div class="chapter-image-wrapper reveal">
+                <div class="polaroid-frame">
+                    <img src="https://github.com/bhes109106-eng/comics/blob/main/photo3.png?raw=true" alt="Pop Mart 03">
+                </div>
+            </div>
+            <div class="chapter-text reveal delay-1">
+                <h2>造夢者的手稿</h2>
+                <p>線條與色彩在畫布上起舞，最終凝結成PVC的觸感。Molly 的倔強、Skullpanda 的深邃，這些角色不僅是玩具，更是當代藝術的微縮標本。它們靜靜地站立在書桌的一角，成為我們平庸生活裡的英雄夢。</p>
+            </div>
+        </section>
+
+        <section class="chapter">
+            <div class="chapter-image-wrapper reveal">
+                <div class="polaroid-frame">
+                    <img src="https://github.com/bhes109106-eng/comics/blob/main/photo4.png?raw=true" alt="Pop Mart 04">
+                </div>
+            </div>
+            <div class="chapter-text reveal delay-1">
+                <h2>偶然的必然</h2>
+                <p>隨機性是這個時代最奢侈的浪漫。當封條撕開的那一刻，空氣彷彿凝固。無論抽中哪一個，都是一種命運的安排。我們蒐集的不是物件，而是那種「恰好被理解」的驚喜瞬間。</p>
+            </div>
+        </section>
+
+        <section class="chapter">
+            <div class="chapter-image-wrapper reveal">
+                <div class="polaroid-frame">
+                    <img src="https://github.com/bhes109106-eng/comics/blob/main/photo5.png?raw=true" alt="Pop Mart 05">
+                </div>
+            </div>
+            <div class="chapter-text reveal delay-1">
+                <h2>永恆的陪伴</h2>
+                <p>光影散去，熱潮退卻，留下的只有案頭那尊小小的身影。它見證了你的深夜工作，分享了你的喜悅與悲傷。在物質過剩的時代，泡泡瑪特給予我們的是一種情緒的錨點，讓漂泊的心有了片刻的歸屬。</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="copyright reveal">
+            翊華程式設計 | 網頁與作品及製作 &copy; 2026
+        </div>
+    </footer>
+
+    <script>
+        // 1. 視差滾動 (Parallax Effect)
+        window.addEventListener('scroll', () => {
+            const scrollValue = window.scrollY;
+            const parallaxBg = document.getElementById('parallax-bg');
+            // 背景稍微位移，產生深度感
+            parallaxBg.style.transform = `translateY(${scrollValue * 0.4}px)`;
+        });
+
+        // 2. 滾動揭示動畫 (Scroll Reveal with Intersection Observer)
+        const observerOptions = {
+            threshold: 0.2 // 當元素進入畫面 20% 時觸發
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, observerOptions);
+
+        // 監管所有帶有 .reveal 類別的元素
+        document.querySelectorAll('.reveal').forEach(el => {
+            observer.observe(el);
+        });
+
+        // 3. 處理圖片載入失敗 (針對 GitHub 連結的容錯處理)
+        document.querySelectorAll('img').forEach(img => {
+            img.onerror = function() {
+                this.src = 'https://via.placeholder.com/600x800/222/d4af37?text=Art+Loading...';
+            };
+        });
+    </script>
+</body>
+</html>
