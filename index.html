@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>POPMART | 靈魂的容器 - 沉浸式敘事展</title>
     
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#c5a059">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="POPMART展">
+    <link rel="apple-touch-icon" href="https://via.placeholder.com/192x192/c5a059/ffffff?text=POP">
+
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&family=Noto+Serif+TC:wght@600;900&display=swap" rel="stylesheet">
     
     <style>
@@ -28,11 +36,11 @@
             font-family: 'Noto Sans TC', sans-serif;
             overflow-x: hidden;
             line-height: 1.8;
+            /* 防止行動端長按選取，增加 App 感 */
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* --- 電影感元素 (Noise & Letterbox) --- */
-        
-        /* 雜訊噪點 */
+        /* --- 電影感元素 --- */
         .film-grain {
             position: fixed;
             top: 0; left: 0;
@@ -53,7 +61,6 @@
             90% { transform: translate(-1%, 1%); }
         }
 
-        /* 電影黑邊 */
         .letterbox {
             position: fixed;
             left: 0; width: 100%;
@@ -64,14 +71,12 @@
         .letterbox-top { top: 0; border-bottom: 1px solid rgba(197, 160, 89, 0.2); }
         .letterbox-bottom { bottom: 0; border-top: 1px solid rgba(197, 160, 89, 0.2); }
 
-        /* --- 視覺排版 --- */
-
         h1, h2, .serif {
             font-family: 'Noto Serif TC', serif;
             letter-spacing: 0.1em;
         }
 
-        /* 第一幕：首頁全幅 */
+        /* 第一幕 */
         .hero {
             height: 100vh;
             display: flex;
@@ -136,9 +141,7 @@
             max-width: 85%;
         }
 
-        .chapter:nth-child(even) .polaroid-frame {
-            transform: rotate(3deg);
-        }
+        .chapter:nth-child(even) .polaroid-frame { transform: rotate(3deg); }
 
         .polaroid-frame img {
             width: 100%;
@@ -173,7 +176,7 @@
             text-align: justify;
         }
 
-        /* --- 滾動揭示動畫 --- */
+        /* 揭示動畫 */
         .reveal {
             opacity: 0;
             transform: translateY(50px);
@@ -185,11 +188,8 @@
             transform: translateY(0);
         }
 
-        /* 延遲效果 */
         .delay-1 { transition-delay: 0.2s; }
-        .delay-2 { transition-delay: 0.4s; }
 
-        /* --- 頁尾 --- */
         footer {
             padding: 100px 0 150px;
             text-align: center;
@@ -202,7 +202,6 @@
             color: var(--accent-gold);
         }
 
-        /* --- 響應式設計 --- */
         @media (max-width: 768px) {
             .chapter {
                 flex-direction: column !important;
@@ -213,12 +212,8 @@
                 margin-bottom: 40px;
                 max-width: 100%;
             }
-            .chapter-text {
-                text-align: center;
-            }
-            .chapter-text h2::after {
-                margin: 10px auto;
-            }
+            .chapter-text { text-align: center; }
+            .chapter-text h2::after { margin: 10px auto; }
             :root { --letterbox-height: 30px; }
         }
     </style>
@@ -294,19 +289,26 @@
     </footer>
 
     <script>
-        // 1. 視差滾動 (Parallax Effect)
+        // --- 1. 註冊 PWA Service Worker ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('PWA 已就緒'))
+                    .catch(err => console.error('PWA 註冊失敗', err));
+            });
+        }
+
+        // --- 2. 視差滾動 ---
         window.addEventListener('scroll', () => {
             const scrollValue = window.scrollY;
             const parallaxBg = document.getElementById('parallax-bg');
-            // 背景稍微位移，產生深度感
-            parallaxBg.style.transform = `translateY(${scrollValue * 0.4}px)`;
+            if(parallaxBg) {
+                parallaxBg.style.transform = `translateY(${scrollValue * 0.4}px)`;
+            }
         });
 
-        // 2. 滾動揭示動畫 (Scroll Reveal with Intersection Observer)
-        const observerOptions = {
-            threshold: 0.2 // 當元素進入畫面 20% 時觸發
-        };
-
+        // --- 3. 滾動揭示動畫 ---
+        const observerOptions = { threshold: 0.2 };
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -315,12 +317,11 @@
             });
         }, observerOptions);
 
-        // 監管所有帶有 .reveal 類別的元素
         document.querySelectorAll('.reveal').forEach(el => {
             observer.observe(el);
         });
 
-        // 3. 處理圖片載入失敗 (針對 GitHub 連結的容錯處理)
+        // --- 4. 圖片容錯 ---
         document.querySelectorAll('img').forEach(img => {
             img.onerror = function() {
                 this.src = 'https://via.placeholder.com/600x800/222/d4af37?text=Art+Loading...';
